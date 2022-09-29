@@ -6,6 +6,11 @@
 #install.packages("semTools")
 library(semTools)
 
+#Trick if something fails:
+#detach("package:semTools", unload = TRUE)
+#detach("package:lavaan", unload = TRUE)
+#library(semTools)
+
 
 ### Data required for Practical-------------------------------------------------
 #load the workspace Workspace_IOPS.RData. The dataset is Data_Cross_Panel.
