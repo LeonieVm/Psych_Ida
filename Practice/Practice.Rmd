@@ -1,0 +1,1618 @@
+---
+title: "What is Psychometrics? Psychometric Evaluation of (Intensive) Longitudinal Data"
+output:
+  bookdown::html_document2:
+     css: "style.css"
+     number_sections: yes
+     toc: true
+     toc_float:
+          collapsed: true
+     df_print: paged # for easy display of data
+---
+
+```{r klippy, echo = FALSE}
+# Create a button for copy pasting code chunk to clipboard
+klippy::klippy(position = c("top", "right"))
+
+```
+
+# General instructions {-}
+
+During this lab session, we will take you through the steps of assessing measurement invariance and adequacy of model fit for cross-sectional, panel, and intensive longitudinal data.
+
+To answer the questions in this practice sheet:
+
+1. Download the material under [Practice](https://github.com/LeonieVm/Psych_Ida).
+2. Unzip the archive.
+
+You will need the two **datasets** `Data_Cross_Panel` and `Data_ILD`, which are automatically in your global environment once you open the workspace `Workspace_IOPS.RData` via the load-workspace button or with the command `load("C:/.../Workspace_IOPS.RData")`
+
+<!-- R Markdown set up code -->
+```{r global_options, include = FALSE}
+# Do you want solutions or not? TRUE = yes, FALSE = NO
+if(!exists("solutions")){
+     solutions <- TRUE
+}
+
+# Load knitr package to change options
+library(knitr)
+
+# Set default options for the chunks
+opts_chunk$set(
+    include = solutions, # solutions or not?
+    echo = TRUE,
+    warning = FALSE,
+    message = FALSE,
+    comment = ""
+)
+
+# Set the width of the console output to a large number (for sidewise scroll)
+options(width = 1e3)
+
+# Define a function to change the color of the reported text
+colorize <- function(x, color) {
+     if (knitr::is_latex_output()) {
+          sprintf("\\textcolor{%s}{%s}", color, x)
+     } else if (knitr::is_html_output()) {
+          sprintf(
+               "<span style='color: %s;'>%s</span>", color,
+               x
+          )
+     } else {
+          x
+     }
+}
+
+# Define a function for reporting text answers
+print.response <- function(paragraphs.vector = c("Paragraph 1", "Paragraph 2"), color = "#007FB3") {
+     # Colorize every paragraph
+     text <- sapply(paragraphs.vector, colorize, color = color)
+
+     # Cat
+     cat(text, sep = "\n\n")
+}
+
+```
+
+# Preliminaries
+
+If you have not already done so, use the `install.packages` function to install the packages `semTools` and `devtools` and via `devtools`, install the package `lmfa`.
+```{r, eval = FALSE}
+# Install the packages if you don't have them yet
+install.packages("semTools")
+install.packages("devtools")
+devtools::install_github("leonievm/lmfa")
+
+#Trick if something fails with semTools:
+detach("package:semTools", unload = TRUE)
+detach("package:lavaan", unload = TRUE)
+
+```
+
+Then load the packages and the workspace.
+```{r}
+# Load packages
+library(semTools)
+library(devtools)
+library(lmfa)
+
+# Read the workspace we will need for this session
+load("Workspace_IOPS.RData")
+
+```
+
+# Cross-Sectional Data
+
+Use the `Data_Cross_Panel` data to answer the questions in this section. We start by defining a model. Subsequently, we assess invariance. Finally, we retrieve the reliability.
+
+Note: for an explanation of the model syntax (including the different symbols), see https://lavaan.ugent.be/tutorial/cfa.html
+
+Quick summary:
+
+* Regression of Y on X:                `Y ~ X`
+
+* Variance of Y specified as:          `Y ~~ Y`
+
+* Covariance between X and Y:          `X ~~ Y`
+
+* Intercept given by:                  `X ~ 1`
+
+* Loading of item on factor            `F1 =~ X`
+
+## - Write syntax for the factor model for the cross-sectional data.
+
+```{r}
+CM_factor_T1 <- '
+
+# Define the latent factors.
+CM_1 =~ NA*T1_CM_01 +lambda1*T1_CM_01 + T1_CM_02 + T1_CM_03 + T1_CM_04 + 
+        T1_CM_05 + T1_CM_06 + T1_CM_07 + T1_CM_08
+
+# Intercepts
+T1_CM_01 ~ i1*1
+T1_CM_02 ~ 1
+T1_CM_03 ~ 1
+T1_CM_04 ~ 1
+T1_CM_05 ~ 1
+T1_CM_06 ~ 1
+T1_CM_07 ~ 1
+T1_CM_08 ~ 1
+
+# Unique Variances
+T1_CM_01 ~~ T1_CM_01
+T1_CM_02 ~~ T1_CM_02
+T1_CM_03 ~~ T1_CM_03
+T1_CM_04 ~~ T1_CM_04
+T1_CM_05 ~~ T1_CM_05
+T1_CM_06 ~~ T1_CM_06
+T1_CM_07 ~~ T1_CM_07
+T1_CM_08 ~~ T1_CM_08
+
+# Latent Variable Means
+CM_1 ~ 0*1
+
+# Latent Variable Variances and Covariance
+CM_1 ~~ 1*CM_1
+'
+```
+
+## - Use the `cfa` function to fit the model to the data and set the argument `mimic` equal to `mplus.
+
+```{r}
+# Model fitting
+fit_CM_T1 <- cfa(CM_factor_T1, data = Data_Cross_Panel, mimic = "mplus")
+
+```
+
+## - Use the `summary` function. Does the model fit well to the data?
+Guidelines:
+
+
+
+Look at **CFI** (should be > .90), **RMSEA** (should be < .08), 
+**SRMR** (should be < .08), and **chi-square** (should be non-significant).
+
+* The CFI (Comparative Fit Index), RMSEA (Root Mean Squared Error of 
+Approximation), and SRMR (Standardized Root Mean Squared Error) are 
+Approximate Fit Indices. They do not correct for sampling variability,
+have no clear cut-offs for good fit, and assume multivariate normal data.
+They are more qualitative measures of fit.
+
+
+    + CFI: Looks at the improvement in fit relative to the independence model 
+       which states that every variable has a mean and variance, but all are 
+       unrelated (correlations are all 0).
+       
+    + RMSEA: Tests for close fit between data (observed (co)variances) 
+       and model implied relations.
+       
+    + SRMR:  Looks at the (mean) covariance residuals. 
+
+
+* Chi-square: Actual test with corresponding null-hypothesis.
+It tests for the null-hypothesis of perfect fit (in the population), that is,
+the model perfectly recovers the observed (co)variances, which
+might be a little unrealistic. It is (unnecessarily) strict (especially for 
+large sample size), assumes multivariate normality, and assumes a random 
+sample. Moreover, it doesn't work well in case there are high correlations 
+and/or high percentages of unique variance. 
+It also tends to miss misfit in single parameters (e.g., a single 
+large covariance residual) and patterns of smaller misfit (many small 
+residuals), AND a non-significant result does NOT mean a good model.
+
+```{r}
+# Getting the results
+summary(fit_CM_T1, fit.measures = TRUE)
+
+```
+
+```{r answer1, results = 'asis', echo = FALSE}
+
+print.response("The CFI is larger than .90 and the SRMR is smaller than .08. 
+The point-estimate of the RMSEA is also smaller than .08, but the 95% confidence 
+interval for this fit measure goes up all the way to .092. Finally, the 
+chi-square test is significant. Normally, we would like at least three of the 
+four indices to show good modelfit, but here only two of the indices do so,
+while a third indicates that modelfit is maybe ok. We therefore conclude 
+that modelfit is sufficient but not good.")
+
+```
+
+## - Generate code for checking configural invariance between groups. Can you figure out what the `c(NA, NA)*T1_CM_0X` implies?
+
+```{r}
+# Generate code for checking configural invariance between groups
+mod.configural  <- semTools::measEq.syntax(configural.model = CM_factor_T1, 
+                                         data = Data_Cross_Panel,
+                                         group = "Gender", mimic = "mplus")
+
+# Inspect the generated code
+cat(as.character(mod.configural))
+```
+```{r answer2, results = 'asis', echo = FALSE}
+
+print.response("As explained in the lavaan manual, 'there is no need [...] to set the factor loading
+of its first indicator[s per group] equal to one [because we already fix the factor variances to 1]. To force [the] factor loading[s] to be free, we pre-multiply it with NA, as a hint to lavaan that the value of this parameter is ‘missing’ and therefore still unknown.'")
+
+```
+
+## - Generate code for checking loading invariance between groups.
+
+```{r}
+# Generate code for checking invariance of loadings
+mod.loadings  <- semTools::measEq.syntax(configural.model = CM_factor_T1, 
+                                           data = Data_Cross_Panel,
+                                           group.equal = c("loadings"),
+                                           group = "Gender", mimic = "mplus")
+
+# Inspect the generated code
+cat(as.character(mod.loadings))
+```
+
+## - Generate code for checking intercept invariance between groups.
+
+```{r}
+# Generate code for checking invariance of intercepts and loadings
+mod.int.load <- semTools::measEq.syntax(configural.model = CM_factor_T1, 
+                                           data = Data_Cross_Panel,
+                                           group.equal = c("intercepts", 
+                                                           "loadings"),
+                                           group = "Gender", mimic = "mplus")
+
+# Inspect the generated code
+cat(as.character(mod.int.load))
+```
+
+## - Fit the three models to the data.
+
+```{r}
+# Fit the configural invariance model
+fit.configural <- cfa(as.character(mod.configural), data = Data_Cross_Panel, 
+                      group = "Gender", mimic = "mplus")
+
+# Fit the loading invariance model
+fit.loadings <- cfa(as.character(mod.loadings), data = Data_Cross_Panel, 
+                    group = "Gender", mimic = "mplus")
+
+# Fit the intercept and loading invariance model
+fit.int.load <- cfa(as.character(mod.int.load), data = Data_Cross_Panel, 
+                    group = "Gender", mimic = "mplus")
+
+```
+
+## - Does configural invariance hold?
+
+```{r}
+# Check model fit using CFI, RMSEA, SRMR, and Chi-square again
+summary(fit.configural, fit.measures = TRUE)
+```
+
+```{r answer3, results = 'asis', echo = FALSE}
+
+print.response("Yes, configural invariance holds because the  CFI is larger than .90 and the SRMR is smaller than .08. 
+The point-estimate of the RMSEA is also smaller than .08, but again the 95% confidence 
+interval for this fit measure does include the value of .08 (and higher, up to .096). Finally, the 
+chi-square test is significant. We therefore conclude 
+that modelfit of the configural invariance model is sufficient.")
+
+```
+
+## - Now compare the different models successively, using the guidelines below.
+
+* More than 20 observations per group: Change should not be larger than -.01 for **CFI**, 0.015 for **RMSEA**, and 0.03 for **SRMR** (*loading invariance*) or .015 for **SRMR** (*intercept invariance*). Difference in chi-square should be non-significant
+
+* 10-20 observations per group: All as above but: Change should not be larger than -.02 for **CFI** and 0.03 **RMSEA** for *loading invariance*. 
+
+* Less than 10 observations per group: Invariance testing is not a good idea.
+
+## - Does loading invariance hold?
+
+```{r}
+Check.Load <- semTools::compareFit(fit.configural, fit.loadings) 
+summary(Check.Load)
+
+```
+
+```{r answer4, results = 'asis', echo = FALSE}
+
+print.response("Yes, loading invariance holds because the chi-square difference
+               test between the configural model and the model with fixed 
+               loadings across groups is non-significant. In addition the change 
+               in CFI, RMSEA, and SRMR are .001, -.006, and .018 respectively.
+               This is all within the guidelines specified above. Importantly,
+               we also see that the model with fixed loadings has adequate
+               fit to the data since the CFI is larger than .90, and the RMSEA
+               and SRMR are both smaller than .08. If the fit of the model
+               with fixed loadings had been insufficient, you should not 
+               conclude that there is loasing invariance even if the differences
+               with the configural model are all within the boundaries specified
+               above.")
+
+```
+
+## - Does intercept invariance hold?
+
+```{r}
+Check.Int <- semTools::compareFit(fit.loadings, fit.int.load)
+summary(Check.Int)
+
+```
+
+```{r answer5, results = 'asis', echo = FALSE}
+
+print.response("No, intercept invariance does not hold because the chi-square 
+               difference test is significant and the change in CFI is larger 
+               than .01. The changes in RMSEA and SRMR are okay, but two out of 
+               the four measures indicate that fixing intercepts acorss groups
+               leads to significantly worse fit.")
+
+```
+
+## - Check the differences in intercepts across groups. Which difference is the largest?
+
+```{r}
+# Difference in groups in intercepts
+parameterEstimates(fit.loadings)[9:16,7] - 
+  parameterEstimates(fit.loadings)[35:42,7]
+
+which(
+  (parameterEstimates(fit.loadings)[9:16,7] - 
+     parameterEstimates(fit.loadings)[35:42,7]) 
+  == min(parameterEstimates(fit.loadings)[9:16,7] - 
+           parameterEstimates(fit.loadings)[35:42,7]))
+
+```
+
+```{r answer6, results = 'asis', echo = FALSE}
+
+print.response("The largest difference is in the intercept of item 5.")
+
+```
+
+## - Adjust the model by allowing for partial non-invariance of item 5 and fit it to the data.
+
+```{r}
+mod.intercepts.part <- semTools::measEq.syntax(configural.model= CM_factor_T1, 
+                                          data = Data_Cross_Panel,
+                                          group.equal = c("loadings",
+                                                          "intercepts"),
+                                          group.partial = c("T1_CM_05 ~ 1"),
+                                          group ="Gender", mimic = "mplus")
+
+# Inspect the generated code
+cat(as.character(mod.intercepts.part))
+
+# Fit the intercept invariance model
+fit.intercepts.part <- cfa(as.character(mod.intercepts.part), data = Data_Cross_Panel, 
+                      group ="Gender", mimic = "mplus")
+
+```
+
+## - Does partial intercept invariance fit the data now? 
+
+```{r}
+
+Check.Int.Part <- semTools::compareFit(fit.loadings, fit.intercepts.part)
+summary(Check.Int.Part)
+
+
+```
+
+```{r answer7, results = 'asis', echo = FALSE}
+
+print.response("Yes, now the model does not fit significantly worse than the 
+               model with fixed loadings. The chi-square difference test is 
+               non-significant, and the changes in the CFI, RMSEA and SRMR after
+               fixing the intercepts of all items except item 5 are smaller than
+               .01, .015, and .030 respectively. In addition, the model with
+               fixed loadings and intercept also has sufficient fit to the data.
+               Partial intercept invariance therefore holds.")
+
+```
+
+## - What is the reliability per group for the final model? It is sufficient?
+
+```{r}
+# Calculate Reliability for the final model
+compRelSEM(fit.intercepts.part)
+
+```
+
+```{r answer8, results = 'asis', echo = FALSE}
+
+print.response("The reliability for group 1 is equal to `0.802` and the reliability for group 2 is equal to `0.795`. Thus, the reliability is okay.")
+
+```
+
+
+# Panel Data
+
+## - Write syntax for the factor model for the panel data.
+
+```{r}
+LI_CM <- '
+
+# Define the latent factors.
+CM_1 =~ NA*T1_CM_01 + 1*T1_CM_01 + T1_CM_02 + T1_CM_03 + T1_CM_04 + T1_CM_05 
++ T1_CM_06 + T1_CM_07 + T1_CM_08
+
+CM_2 =~ NA*T2_CM_01 + 1*T2_CM_01 + T2_CM_02 + T2_CM_03 + T2_CM_04 + T2_CM_05 
++ T2_CM_06 + T2_CM_07 + T2_CM_08
+
+CM_3 =~ NA*T3_CM_01 + 1*T3_CM_01 + T3_CM_02 + T3_CM_03 + T3_CM_04 + T3_CM_05 
++ T3_CM_06 + T3_CM_07 + T3_CM_08
+
+# Intercepts
+T1_CM_01 ~ 1
+T1_CM_02 ~ 1
+T1_CM_03 ~ 1
+T1_CM_04 ~ 1
+T1_CM_05 ~ 1
+T1_CM_06 ~ 1
+T1_CM_07 ~ 1
+T1_CM_08 ~ 1
+
+T2_CM_01 ~ 1
+T2_CM_02 ~ 1
+T2_CM_03 ~ 1
+T2_CM_04 ~ 1
+T2_CM_05 ~ 1
+T2_CM_06 ~ 1
+T2_CM_07 ~ 1
+T2_CM_08 ~ 1
+
+T3_CM_01 ~ 1
+T3_CM_02 ~ 1
+T3_CM_03 ~ 1
+T3_CM_04 ~ 1
+T3_CM_05 ~ 1
+T3_CM_06 ~ 1
+T3_CM_07 ~ 1
+T3_CM_08 ~ 1
+
+# Unique Variances
+T1_CM_01 ~~ T1_CM_01
+T1_CM_02 ~~ T1_CM_02
+T1_CM_03 ~~ T1_CM_03
+T1_CM_04 ~~ T1_CM_04
+T1_CM_05 ~~ T1_CM_05
+T1_CM_06 ~~ T1_CM_06
+T1_CM_07 ~~ T1_CM_07
+T1_CM_08 ~~ T1_CM_08
+
+T2_CM_01 ~~ T2_CM_01
+T2_CM_02 ~~ T2_CM_02
+T2_CM_03 ~~ T2_CM_03
+T2_CM_04 ~~ T2_CM_04
+T2_CM_05 ~~ T2_CM_05
+T2_CM_06 ~~ T2_CM_06
+T2_CM_07 ~~ T2_CM_07
+T2_CM_08 ~~ T2_CM_08
+
+T3_CM_01 ~~ T3_CM_01
+T3_CM_02 ~~ T3_CM_02
+T3_CM_03 ~~ T3_CM_03
+T3_CM_04 ~~ T3_CM_04
+T3_CM_05 ~~ T3_CM_05
+T3_CM_06 ~~ T3_CM_06
+T3_CM_07 ~~ T3_CM_07
+T3_CM_08 ~~ T3_CM_08
+
+# Latent Variable Means
+CM_1 ~ 0*1
+CM_2 ~ 0*1
+CM_3 ~ 0*1
+
+# Latent Variable Variances and Covariance
+CM_1 ~~ 1*CM_1
+CM_2 ~~ 1*CM_2
+CM_3 ~~ 1*CM_3
+'
+
+```
+
+## - Use the `cfa` function to fit the model to the data and set the argument `mimic` equal to `mplus.
+
+```{r}
+# Model fitting
+fit_CM_Long <- cfa(LI_CM, data = Data_Cross_Panel, mimic = "mplus")
+
+```
+
+## - Use the `summary` function. Does the model fit well to the data?
+Guidelines:
+
+
+
+Look at **CFI** (should be > .90), **RMSEA** (should be < .08), 
+**SRMR** (should be < .08), and **chi-square** (should be non-significant).
+
+* The CFI (Comparative Fit Index), RMSEA (Root Mean Squared Error of 
+Approximation), and SRMR (Standardized Root Mean Squared Error) are 
+Approximate Fit Indices. They do not correct for sampling variability,
+have no clear cut-offs for good fit, and assume multivariate normal data.
+They are more qualitative measures of fit.
+
+
+    + CFI: Looks at the improvement in fit relative to the independence model 
+       which states that every variable has a mean and variance, but all are 
+       unrelated (correlations are all 0).
+       
+    + RMSEA: Tests for close fit between data (observed (co)variances) 
+       and model implied relations.
+       
+    + SRMR:  Looks at the (mean) covariance residuals. 
+
+
+* Chi-square: Actual test with corresponding null-hypothesis.
+It tests for the null-hypothesis of perfect fit (in the population), that is,
+the model perfectly recovers the observed (co)variances, which
+might be a little unrealistic. It is (unnecessarily) strict (especially for 
+large sample size), assumes multivariate normality, and assumes a random 
+sample. Moreover, it doesn't work well in case there are high correlations 
+and/or high percentages of unique variance. 
+It also tends to miss misfit in single parameters (e.g., a single 
+large covariance residual) and patterns of smaller misfit (many small 
+residuals), AND a non-significant result does NOT mean a good model.
+
+```{r}
+# Getting the results
+summary(fit_CM_Long, fit.measures = TRUE)
+
+```
+
+```{r answer1_l, results = 'asis', echo = FALSE}
+
+print.response("The fit of the model to the data is bad. The Chi-square test
+               is significant, the CFI is too low, and the RMSEA and SRMR are
+               both too high. Possible reason for the misfit could have to do 
+               with the nature of the data. We have repeated measures here and
+               scores on one time-point are likely related to scores
+               on a successive time-point, and possibly above and 
+               beyond the dependence that is already there through the correlated
+               factors at T1, T2, and T3. If you're bad at multiple-choice 
+               questions at T1 for example, you probably still are at T2 and T3. 
+               That is why you often see correlations added between the same 
+               items at different (usually succesive) time-points in models for 
+               panel data. When using the code below to test for longitudinal 
+               invariance, these correlations are automatically added to the 
+               model so we won't add them here. Do see if you can spot these 
+               serial correlations in the generated code below however.")
+
+```
+
+
+## - Generate code for checking configural invariance across time.
+
+```{r}
+# Generate code for checking configural invariance across time
+
+longFacNames <- list(CM = c("CM_1","CM_2","CM_3"))
+
+mod.configural.long <-semTools::measEq.syntax(LI_CM, 
+                                     longFacNames = longFacNames,
+                                     data = Data_Cross_Panel, missing = "fiml")
+# Now we use a new argument longFacNames. For details, see ?measEq.syntax
+
+# Inspect the generated code
+cat(as.character(mod.configural.long))
+
+```
+
+## - Fit the configural invariance model to the data.
+
+```{r}
+fit.configural.long <- lavaan::cfa(as.character(mod.configural.long), 
+                              data = Data_Cross_Panel, 
+                              fixed.x = FALSE)
+
+```
+
+## - Does configural invariance hold?
+
+```{r}
+# Check model fit using CFI, RMSEA, SRMR, and Chi-square again
+summary(fit.configural.long, fit.measures = TRUE)
+
+```
+
+```{r answer2_l, results = 'asis', echo = FALSE}
+
+print.response("The fit is not great because while the SRMR is lower than its 
+               recommended value, all other indices indicate a lack of fit 
+               (despite the serial correlations between the same item at 
+               succesive time-points now being part of the model). 
+               This shows that at one of the three time-points the model fits 
+               less well, we just have to figure out what part of the model, and
+               at what time-point, exactly does not fit well. We'll try to figure
+               this out below using modification indices")
+
+```
+
+
+## - Check the modification indices. For each time-point separaterly, which residual covariances would be worth adding?
+
+```{r}
+# Obtain the modification indices
+MIs <- modindices(fit.configural.long)
+
+# Show the first 30
+head(MIs[order(MIs$mi, decreasing = TRUE), 1:4], n = 30)
+```
+
+```{r answer3_l, results = 'asis', echo = FALSE}
+
+print.response("
+At T3 items 2 and 5, and 1 and 3 are pretty correlated (`T3_CM_02 ~~ T3_CM_05`, `T3_CM_01 ~~ T3_CM_03`).
+At T2 items 1 and 2, and 3 and 6 are pretty correlated (`T2_CM_01	~~ T2_CM_02`, `T2_CM_03	~~ T2_CM_06`).
+At T1 items 4 and 5, and 3 and 6 are pretty correlated (`T1_CM_04	~~ T1_CM_05`, `T1_CM_03 ~~ T1_CM_06`). We see that the residual correlation between items 3 and 6 is a suggested modification at both T1 and T2. Since we're measuring the same construct at all three time-points, making similar adjustments at each time-point is preferred. We therefore choose to add the residual correlation between items 3 and 6  at T1, T2, and T3.")
+
+```
+
+
+## - Add one residual covariance per time-point to the model.
+
+```{r}
+LI_CM2 <- '
+
+# Define the latent factors.
+CM_1 =~ NA*T1_CM_01 + 1*T1_CM_01 + T1_CM_02 + T1_CM_03 + T1_CM_04 + T1_CM_05 + T1_CM_06 + T1_CM_07 + T1_CM_08
+CM_2 =~ NA*T2_CM_01 + 1*T2_CM_01 + T2_CM_02 + T2_CM_03 + T2_CM_04 + T2_CM_05 + T2_CM_06 + T2_CM_07 + T2_CM_08
+CM_3 =~ NA*T3_CM_01 + 1*T3_CM_01 + T3_CM_02 + T3_CM_03 + T3_CM_04 + T3_CM_05 + T3_CM_06 + T3_CM_07 + T3_CM_08
+
+# Intercepts
+T1_CM_01 ~ 1
+T1_CM_02 ~ 1
+T1_CM_03 ~ 1
+T1_CM_04 ~ 1
+T1_CM_05 ~ 1
+T1_CM_06 ~ 1
+T1_CM_07 ~ 1
+T1_CM_08 ~ 1
+
+T2_CM_01 ~ 1
+T2_CM_02 ~ 1
+T2_CM_03 ~ 1
+T2_CM_04 ~ 1
+T2_CM_05 ~ 1
+T2_CM_06 ~ 1
+T2_CM_07 ~ 1
+T2_CM_08 ~ 1
+
+T3_CM_01 ~ 1
+T3_CM_02 ~ 1
+T3_CM_03 ~ 1
+T3_CM_04 ~ 1
+T3_CM_05 ~ 1
+T3_CM_06 ~ 1
+T3_CM_07 ~ 1
+T3_CM_08 ~ 1
+
+# Unique Variances
+T1_CM_01 ~~ T1_CM_01
+T1_CM_02 ~~ T1_CM_02
+T1_CM_03 ~~ T1_CM_03
+T1_CM_04 ~~ T1_CM_04
+T1_CM_05 ~~ T1_CM_05
+T1_CM_06 ~~ T1_CM_06
+T1_CM_07 ~~ T1_CM_07
+T1_CM_08 ~~ T1_CM_08
+
+T2_CM_01 ~~ T2_CM_01
+T2_CM_02 ~~ T2_CM_02
+T2_CM_03 ~~ T2_CM_03
+T2_CM_04 ~~ T2_CM_04
+T2_CM_05 ~~ T2_CM_05
+T2_CM_06 ~~ T2_CM_06
+T2_CM_07 ~~ T2_CM_07
+T2_CM_08 ~~ T2_CM_08
+
+T3_CM_01 ~~ T3_CM_01
+T3_CM_02 ~~ T3_CM_02
+T3_CM_03 ~~ T3_CM_03
+T3_CM_04 ~~ T3_CM_04
+T3_CM_05 ~~ T3_CM_05
+T3_CM_06 ~~ T3_CM_06
+T3_CM_07 ~~ T3_CM_07
+T3_CM_08 ~~ T3_CM_08
+
+# Latent Variable Means
+CM_1 ~ 0*1
+CM_2 ~ 0*1
+CM_3 ~ 0*1
+
+# Latent Variable Variances and Covariance
+CM_1 ~~ 1*CM_1
+CM_2 ~~ 1*CM_2
+CM_3 ~~ 1*CM_3
+
+
+# Residual Covariances 
+T1_CM_03 ~~ T1_CM_06
+T2_CM_03 ~~ T2_CM_06
+T3_CM_03 ~~ T3_CM_06
+'
+```
+
+## - Fit the adjusted model to the data.
+
+```{r}
+# Generate code and inspect it
+mod.configural.long2 <-semTools::measEq.syntax(LI_CM2, 
+                                              longFacNames = longFacNames,
+                                              data = Data_Cross_Panel, missing = "fiml")
+cat(as.character(mod.configural.long2))
+
+# Model fitting
+fit.configural.long2 <- lavaan::cfa(as.character(mod.configural.long2), 
+                              data = Data_Cross_Panel, 
+                              fixed.x = FALSE)
+```
+
+## - Does configural invariance with the added residual variances fit the data now?
+
+```{r}
+# Check model fit using CFI, RMSEA, SRMR, and Chi-square again
+summary(fit.configural.long2, fit.measures = TRUE)
+```
+
+```{r answer4_l, results = 'asis', echo = FALSE}
+
+print.response("The fit is still not great because, apart from the SRMR, all 
+               fit indices are still indicating model misfit. We will therefore
+               make some further alterations based on the modification indices.
+               Note that you should always be very careful with the post-hoc 
+               model adjustments based on modification indices. Any alteration,
+               needs to make substantive sense, and purely adjusting your model 
+               based on fit indices means the risk of overfitting your model to 
+               the current sample, instead of finding a proper general model 
+               that also applies to (hypothetical) future samples form the same
+               population.")
+
+```
+
+## - Check the modification indices. For each time-point separaterly, which residual covariances would be worth adding?
+
+```{r}
+# Obtain the modification indices
+MIs2 <- modindices(fit.configural.long2)
+
+# Show the first 30
+head(MIs2[order(MIs2$mi, decreasing = TRUE), 1:4], n = 30)
+```
+
+```{r answer5_l, results = 'asis', echo = FALSE}
+
+print.response("
+ At T3 items 1 and 3, 3 and 5, and 1 and 2 are pretty correlated (`T3_CM_01 ~~ T3_CM_03`, `T3_CM_03 ~~ T3_CM_05`, `T3_CM_01 ~~ T3_CM_02`).
+ At T2 items 1 and 2, 2 and 6, and 2 and 3 are pretty correlated (`T2_CM_01	~~ T2_CM_02`, `T2_CM_02	~~ T2_CM_06`, `T2_CM_02	~~ T2_CM_03` ).
+ At T1 items 4 and 5 are pretty correlated (`T1_CM_04	~~ T1_CM_05`). 
+ Now we see that the residual correlation between items 1 and 2 is a suggested modification at both T3 and T2. Since we want to make similar adjustments at each time-point, we therefore choose to add the residual correlation between items 1 and 2  at T1, T2, and T3.
+  ")
+
+```
+
+## - Add one additional residual covariance per time-point to the model.
+
+```{r}
+LI_CM3 <- '
+
+# Define the latent factors.
+CM_1 =~ NA*T1_CM_01 + 1*T1_CM_01 + T1_CM_02 + T1_CM_03 + T1_CM_04 + T1_CM_05 
++ T1_CM_06 + T1_CM_07 + T1_CM_08
+CM_2 =~ NA*T2_CM_01 + 1*T2_CM_01 + T2_CM_02 + T2_CM_03 + T2_CM_04 + T2_CM_05 
++ T2_CM_06 + T2_CM_07 + T2_CM_08
+CM_3 =~ NA*T3_CM_01 + 1*T3_CM_01 + T3_CM_02 + T3_CM_03 + T3_CM_04 + T3_CM_05 
++ T3_CM_06 + T3_CM_07 + T3_CM_08
+
+# Intercepts
+T1_CM_01 ~ 1
+T1_CM_02 ~ 1
+T1_CM_03 ~ 1
+T1_CM_04 ~ 1
+T1_CM_05 ~ 1
+T1_CM_06 ~ 1
+T1_CM_07 ~ 1
+T1_CM_08 ~ 1
+
+T2_CM_01 ~ 1
+T2_CM_02 ~ 1
+T2_CM_03 ~ 1
+T2_CM_04 ~ 1
+T2_CM_05 ~ 1
+T2_CM_06 ~ 1
+T2_CM_07 ~ 1
+T2_CM_08 ~ 1
+
+T3_CM_01 ~ 1
+T3_CM_02 ~ 1
+T3_CM_03 ~ 1
+T3_CM_04 ~ 1
+T3_CM_05 ~ 1
+T3_CM_06 ~ 1
+T3_CM_07 ~ 1
+T3_CM_08 ~ 1
+
+# Unique Variances
+T1_CM_01 ~~ T1_CM_01
+T1_CM_02 ~~ T1_CM_02
+T1_CM_03 ~~ T1_CM_03
+T1_CM_04 ~~ T1_CM_04
+T1_CM_05 ~~ T1_CM_05
+T1_CM_06 ~~ T1_CM_06
+T1_CM_07 ~~ T1_CM_07
+T1_CM_08 ~~ T1_CM_08
+
+T2_CM_01 ~~ T2_CM_01
+T2_CM_02 ~~ T2_CM_02
+T2_CM_03 ~~ T2_CM_03
+T2_CM_04 ~~ T2_CM_04
+T2_CM_05 ~~ T2_CM_05
+T2_CM_06 ~~ T2_CM_06
+T2_CM_07 ~~ T2_CM_07
+T2_CM_08 ~~ T2_CM_08
+
+T3_CM_01 ~~ T3_CM_01
+T3_CM_02 ~~ T3_CM_02
+T3_CM_03 ~~ T3_CM_03
+T3_CM_04 ~~ T3_CM_04
+T3_CM_05 ~~ T3_CM_05
+T3_CM_06 ~~ T3_CM_06
+T3_CM_07 ~~ T3_CM_07
+T3_CM_08 ~~ T3_CM_08
+
+# Latent Variable Means
+CM_1 ~ 0*1
+CM_2 ~ 0*1
+CM_3 ~ 0*1
+
+# Latent Variable Variances and Covariance
+CM_1 ~~ 1*CM_1
+CM_2 ~~ 1*CM_2
+CM_3 ~~ 1*CM_3
+
+
+# Residual Covariances 
+T1_CM_03 ~~ T1_CM_06
+T2_CM_03 ~~ T2_CM_06
+T3_CM_03 ~~ T3_CM_06
+
+T1_CM_01 ~~ T1_CM_02
+T2_CM_01 ~~ T2_CM_02
+T3_CM_01 ~~ T3_CM_02
+
+'
+```
+
+## - Fit the adjusted model to the data.
+
+```{r}
+# Generate code and inspect it
+mod.configural.long3 <-semTools::measEq.syntax(LI_CM3, 
+                                               longFacNames = longFacNames,
+                                               data = Data_Cross_Panel, missing = "fiml")
+cat(as.character(mod.configural.long3))
+
+# Model fitting
+fit.configural.long3 <- lavaan::cfa(as.character(mod.configural.long3), 
+                               data = Data_Cross_Panel, 
+                               fixed.x = FALSE)
+```
+
+## - Does configural invariance with the added residual variances fit the data now?
+
+```{r}
+# Check model fit using CFI, RMSEA, SRMR, and Chi-square again
+summary(fit.configural.long3, fit.measures = TRUE)
+```
+
+```{r answer6_l, results = 'asis', echo = FALSE}
+
+print.response("The fit is still not good enough, even after adding additional 
+               residual correlations. Looking at the modification indices you 
+               might have noticed however that tems 3, 1, and 6 are always the
+               ones causing 'problems'. We will therefore remove these items one
+               at a time (but the same caution we made above with adding 
+               covariances based on modification indices apply here! Model 
+               modifications should ideally not be based on statistics alone and 
+               reserachers always want to be careful when removing items as this
+               might change the interpretation and/or scope of the latent 
+               variable being modeled.")
+
+```
+
+## - Remove item 3 from the original model (i.e., without any added residual covariances).
+
+```{r}
+LI_CM4 <- '
+
+# Define the latent factors.
+CM_1 =~ NA*T1_CM_01 + 1*T1_CM_01 + T1_CM_02 + T1_CM_04 + T1_CM_05 + T1_CM_06 
++ T1_CM_07 + T1_CM_08
+CM_2 =~ NA*T2_CM_01 + 1*T2_CM_01 + T2_CM_02 + T2_CM_04 + T2_CM_05 + T2_CM_06 
++ T2_CM_07 + T2_CM_08
+CM_3 =~ NA*T3_CM_01 + 1*T3_CM_01 + T3_CM_02 + T3_CM_04 + T3_CM_05 + T3_CM_06 
++ T3_CM_07 + T3_CM_08
+
+# Intercepts
+T1_CM_01 ~ 1
+T1_CM_02 ~ 1
+T1_CM_04 ~ 1
+T1_CM_05 ~ 1
+T1_CM_06 ~ 1
+T1_CM_07 ~ 1
+T1_CM_08 ~ 1
+
+T2_CM_01 ~ 1
+T2_CM_02 ~ 1
+T2_CM_04 ~ 1
+T2_CM_05 ~ 1
+T2_CM_06 ~ 1
+T2_CM_07 ~ 1
+T2_CM_08 ~ 1
+
+T3_CM_01 ~ 1
+T3_CM_02 ~ 1
+T3_CM_04 ~ 1
+T3_CM_05 ~ 1
+T3_CM_06 ~ 1
+T3_CM_07 ~ 1
+T3_CM_08 ~ 1
+
+# Unique Variances
+T1_CM_01 ~~ T1_CM_01
+T1_CM_02 ~~ T1_CM_02
+T1_CM_04 ~~ T1_CM_04
+T1_CM_05 ~~ T1_CM_05
+T1_CM_06 ~~ T1_CM_06
+T1_CM_07 ~~ T1_CM_07
+T1_CM_08 ~~ T1_CM_08
+
+T2_CM_01 ~~ T2_CM_01
+T2_CM_02 ~~ T2_CM_02
+T2_CM_04 ~~ T2_CM_04
+T2_CM_05 ~~ T2_CM_05
+T2_CM_06 ~~ T2_CM_06
+T2_CM_07 ~~ T2_CM_07
+T2_CM_08 ~~ T2_CM_08
+
+T3_CM_01 ~~ T3_CM_01
+T3_CM_02 ~~ T3_CM_02
+T3_CM_04 ~~ T3_CM_04
+T3_CM_05 ~~ T3_CM_05
+T3_CM_06 ~~ T3_CM_06
+T3_CM_07 ~~ T3_CM_07
+T3_CM_08 ~~ T3_CM_08
+
+# Latent Variable Means
+CM_1 ~ 0*1
+CM_2 ~ 0*1
+CM_3 ~ 0*1
+
+# Latent Variable Variances and Covariance
+CM_1 ~~ 1*CM_1
+CM_2 ~~ 1*CM_2
+CM_3 ~~ 1*CM_3
+'
+```
+
+## - Fit the adjusted model to the data.
+
+```{r}
+# Generate code and inspect it
+mod.configural.long4 <- semTools::measEq.syntax(LI_CM4, 
+                                               longFacNames = longFacNames,
+                                               data = Data_Cross_Panel, missing = "fiml")
+cat(as.character(mod.configural.long4))
+
+# Model fitting
+fit.configural.long4 <- lavaan::cfa(as.character(mod.configural.long4), 
+                               data = Data_Cross_Panel, 
+                               fixed.x = FALSE)
+```
+
+
+## - Does configural invariance without item 3 hold?
+
+```{r}
+# Check model fit using CFI, RMSEA, SRMR, and Chi-square again
+summary(fit.configural.long4, fit.measures=T)
+```
+
+```{r answer7_l, results = 'asis', echo = FALSE}
+
+print.response("The fit is still not good.")
+
+```
+
+## - Remove item 1 in addition to item 3.
+
+```{r}
+LI_CM5 <- '
+
+# Define the latent factors.
+CM_1 =~ NA*T1_CM_02 + T1_CM_02 + T1_CM_04 + T1_CM_05 + T1_CM_06 + T1_CM_07 
++ T1_CM_08
+CM_2 =~ NA*T2_CM_02 + T2_CM_02 + T2_CM_04 + T2_CM_05 + T2_CM_06 + T2_CM_07 
++ T2_CM_08
+CM_3 =~ NA*T3_CM_02 + T3_CM_02 + T3_CM_04 + T3_CM_05 + T3_CM_06 + T3_CM_07 
++ T3_CM_08
+
+# Intercepts
+T1_CM_02 ~ 1
+T1_CM_04 ~ 1
+T1_CM_05 ~ 1
+T1_CM_06 ~ 1
+T1_CM_07 ~ 1
+T1_CM_08 ~ 1
+
+T2_CM_02 ~ 1
+T2_CM_04 ~ 1
+T2_CM_05 ~ 1
+T2_CM_06 ~ 1
+T2_CM_07 ~ 1
+T2_CM_08 ~ 1
+
+T3_CM_02 ~ 1
+T3_CM_04 ~ 1
+T3_CM_05 ~ 1
+T3_CM_06 ~ 1
+T3_CM_07 ~ 1
+T3_CM_08 ~ 1
+
+# Unique Variances
+T1_CM_02 ~~ T1_CM_02
+T1_CM_04 ~~ T1_CM_04
+T1_CM_05 ~~ T1_CM_05
+T1_CM_06 ~~ T1_CM_06
+T1_CM_07 ~~ T1_CM_07
+T1_CM_08 ~~ T1_CM_08
+
+T2_CM_02 ~~ T2_CM_02
+T2_CM_04 ~~ T2_CM_04
+T2_CM_05 ~~ T2_CM_05
+T2_CM_06 ~~ T2_CM_06
+T2_CM_07 ~~ T2_CM_07
+T2_CM_08 ~~ T2_CM_08
+
+T3_CM_02 ~~ T3_CM_02
+T3_CM_04 ~~ T3_CM_04
+T3_CM_05 ~~ T3_CM_05
+T3_CM_06 ~~ T3_CM_06
+T3_CM_07 ~~ T3_CM_07
+T3_CM_08 ~~ T3_CM_08
+
+# Latent Variable Means
+CM_1 ~ 0*1
+CM_2 ~ 0*1
+CM_3 ~ 0*1
+
+# Latent Variable Variances and Covariance
+CM_1 ~~ 1*CM_1
+CM_2 ~~ 1*CM_2
+CM_3 ~~ 1*CM_3
+'
+```
+
+## - Fit the adjusted model to the data.
+
+```{r}
+# Generate code and inspect it
+mod.configural.long5 <-semTools::measEq.syntax(LI_CM5, 
+                                               longFacNames = longFacNames,
+                                               data = Data_Cross_Panel, missing = "fiml")
+cat(as.character(mod.configural.long5))
+
+# Model fitting
+fit.configural.long5 <- lavaan::cfa(as.character(mod.configural.long5), 
+                               data = Data_Cross_Panel, 
+                               fixed.x = FALSE)
+```
+
+
+## - Does configural invariance without items 3 and 1 hold?
+
+```{r}
+# Check model fit using CFI, RMSEA, SRMR, and Chi-square again
+summary(fit.configural.long5, fit.measures=T)
+```
+
+```{r answer8_l, results = 'asis', echo = FALSE}
+
+print.response("The fit is gettin better (with the point estimate of the RMSEA 
+               on the boundary of it cut-off value now, although the upper-boundary
+               of its 95% CI is still too high), but it's not good yet.")
+
+```
+
+## - Remove item 6 in addition to items 3 and 1.
+
+```{r}
+LI_CM6 <- '
+
+# Define the latent factors.
+CM_1 =~ NA*T1_CM_02 + T1_CM_02 + T1_CM_04 + T1_CM_05 + T1_CM_07 + T1_CM_08
+CM_2 =~ NA*T2_CM_02 + T2_CM_02 + T2_CM_04 + T2_CM_05 + T2_CM_07 + T2_CM_08
+CM_3 =~ NA*T3_CM_02 + T3_CM_02 + T3_CM_04 + T3_CM_05 + T3_CM_07 + T3_CM_08
+
+# Intercepts
+T1_CM_02 ~ 1
+T1_CM_04 ~ 1
+T1_CM_05 ~ 1
+T1_CM_07 ~ 1
+T1_CM_08 ~ 1
+
+T2_CM_02 ~ 1
+T2_CM_04 ~ 1
+T2_CM_05 ~ 1
+T2_CM_07 ~ 1
+T2_CM_08 ~ 1
+
+T3_CM_02 ~ 1
+T3_CM_04 ~ 1
+T3_CM_05 ~ 1
+T3_CM_07 ~ 1
+T3_CM_08 ~ 1
+
+# Unique Variances
+T1_CM_02 ~~ T1_CM_02
+T1_CM_04 ~~ T1_CM_04
+T1_CM_05 ~~ T1_CM_05
+T1_CM_07 ~~ T1_CM_07
+T1_CM_08 ~~ T1_CM_08
+
+T2_CM_02 ~~ T2_CM_02
+T2_CM_04 ~~ T2_CM_04
+T2_CM_05 ~~ T2_CM_05
+T2_CM_07 ~~ T2_CM_07
+T2_CM_08 ~~ T2_CM_08
+
+T3_CM_02 ~~ T3_CM_02
+T3_CM_04 ~~ T3_CM_04
+T3_CM_05 ~~ T3_CM_05
+T3_CM_07 ~~ T3_CM_07
+T3_CM_08 ~~ T3_CM_08
+
+# Latent Variable Means
+CM_1 ~ 0*1
+CM_2 ~ 0*1
+CM_3 ~ 0*1
+
+# Latent Variable Variances and Covariance
+CM_1 ~~ 1*CM_1
+CM_2 ~~ 1*CM_2
+CM_3 ~~ 1*CM_3
+'
+```
+
+## - Fit the adjusted model to the data.
+
+```{r}
+# Generate code and inspect it
+mod.configural.long6 <-semTools::measEq.syntax(LI_CM6, 
+                                               longFacNames = longFacNames,
+                                               data=Data_Cross_Panel, missing = "fiml")
+cat(as.character(mod.configural.long6))
+
+# Model fitting
+fit.configural.long6 <- lavaan::cfa(as.character(mod.configural.long6), 
+                               data = Data_Cross_Panel, 
+                               fixed.x = FALSE)
+```
+
+
+## - Does configural invariance without items 3, 1, and 6 hold?
+
+```{r}
+# Check model fit using CFI, RMSEA, SRMR, and Chi-square again
+summary(fit.configural.long6, fit.measures = TRUE)
+```
+
+```{r answer9_l, results = 'asis', echo = FALSE}
+
+print.response("Yes, now we have good fit. Only the chi-square test is still 
+               significant, and the upper-boundary of the 95% CI of the RMSEA is
+               still too high, but just barely so. Now that we have a good 
+               fitting configural invariance model, we are ready to start 
+               constraining loadings and intercepts across time-points")
+
+```
+
+
+## - Generate code for checking loading invariance between groups.
+
+```{r}
+# Generate code for checking longitudinal invariance of loadings
+
+mod.loadings.long <-semTools::measEq.syntax(LI_CM6, longFacNames = longFacNames, 
+                                     long.equal = "loadings", data=Data_Cross_Panel,
+                                     missing="fiml")
+
+# Inspect the generated code
+cat(as.character(mod.loadings.long))
+```
+
+## - Generate code for checking intercept invariance between groups.
+
+```{r}
+# Generate code for checking longitudinal invariance of intercepts and loadings
+mod.int.load.long <-semTools::measEq.syntax(LI_CM6, 
+                                              longFacNames = longFacNames, 
+                                              long.equal = c("intercepts", 
+                                                             "loadings"), 
+                                              data=Data_Cross_Panel, missing="fiml")
+
+# Inspect the generated code
+cat(as.character(mod.int.load.long))
+```
+
+## - Fit the three models to the data.
+
+```{r}
+# Fit the loading invariance model
+fit.loading.long <- lavaan::cfa(as.character(mod.loadings.long), 
+                               data = Data_Cross_Panel, 
+                               fixed.x=FALSE)
+
+# Fit the intercept invariance model
+fit.int.load.long <- lavaan::cfa(as.character(mod.int.load.long), 
+                                  data = Data_Cross_Panel, 
+                                  fixed.x=FALSE)
+
+```
+
+## - Now compare the different models successively, using the guidelines below.
+
+* More than 20 observations per group: Change should not be larger than -.01 for **CFI**, 0.015 for **RMSEA**, and 0.03 for **SRMR** (*loading invariance*) or .015 for **SRMR** (*intercept invariance*). Difference in chi-square should be non-significant
+
+* 10-20 observations per group: All as above but: Change should not be larger than -.02 for **CFI** and 0.03 **RMSEA** for *loading invariance*. 
+
+* Less than 10 observations per group: Invariance testing is not a good idea.
+
+## - Does loading invariance hold?
+
+```{r}
+Check.Load.Long <- semTools::compareFit(fit.configural.long6, fit.loading.long) 
+summary(Check.Load.Long)
+
+```
+
+```{r answer10_l, results = 'asis', echo = FALSE}
+
+print.response("Yes, loading invariance holds because while the chi-square 
+               difference test is significant, the changes in all other 
+               fit indices are smaller than the maximum allowed changes 
+               mentioned in the guidelines.")
+
+```
+
+## - Does intercept invariance hold?
+
+```{r}
+Check.Int.Load.Long <- semTools::compareFit(fit.loading.long, 
+                                            fit.int.load.long)
+summary(Check.Int.Load.Long) 
+
+```
+
+```{r answer11_l, results = 'asis', echo = FALSE}
+
+print.response("This is a bit or a borderline-case, the chi-square difference 
+               test is significant and the change is CFI is juuust to large (by
+               .001). We could now see which item has the largest change in 
+               intercept value across time, just like we did above for 
+               cross-sectional data, but for this assignment we'll settle for
+               this model and conclude that intercept invariance holds.")
+
+```
+
+## - What is the reliability per time-point for the final model? It is sufficient?
+
+```{r}
+# Calculate Reliability for the final model
+compRelSEM(fit.int.load.long)
+
+
+```
+
+```{r answer12_l, results = 'asis', echo = FALSE}
+
+print.response("The reliability for all time-points are a bit low (with `0.640` for T1, `0.687` for T2 and `0.637` for T3).")
+
+```
+
+# Intensice Longitudinal Data
+
+## - Write syntax for the multilevel factor model for the ILD.
+
+```{r}
+Mutlilevel_factor <- '
+# Define the latent factors on level 1.
+level: 1
+  DG_1 =~ NA*anything +lambda1*anything + fail + fault + smart + 
+        mistakes + hire + looks
+
+# Intercepts
+  anything ~ i1*1
+  fail ~ 1
+  fault ~ 1
+  smart ~ 1
+  mistakes ~ 1
+  hire ~ 1
+  looks ~ 1
+  
+# Unique Variances
+  anything ~~ anything
+  fail ~~ fail
+  fault ~~ fault
+  smart ~~ smart
+  mistakes ~~ mistakes
+  hire ~~ hire
+  looks ~~ looks
+  
+
+# Latent Variable Means
+  DG_1 ~ 0*1
+
+# Latent Variable Variances and Covariance
+  DG_1 ~~ 1*DG_1
+  
+# Define the latent factors on level 2.
+level: 2
+
+  DG_1 =~ NA*anything +lambda1*anything + fail + fault + smart + 
+        mistakes + hire + looks
+        
+# Latent Variable Means
+  DG_1 ~ 0*1
+
+# Latent Variable Variances and Covariance
+  DG_1 ~~ 1*DG_1
+'
+```
+
+
+## - Use the `cfa` function to fit the model to the data and set the argument `mimic` equal to `mplus.
+
+```{r}
+# Model fitting
+fit.multilevel <- cfa(model = Mutlilevel_factor, data = Data_ILD, 
+                      cluster = "id")
+
+```
+
+## - Use the `summary` function. Does the model fit well to the data? Look at the fit for the two levels separately.
+
+Guidelines:
+
+
+
+Look at **CFI** (should be > .90), **RMSEA** (should be < .08), 
+**SRMR** (should be < .08), and **chi-square** (should be non-significant).
+
+* The CFI (Comparative Fit Index), RMSEA (Root Mean Squared Error of 
+Approximation), and SRMR (Standardized Root Mean Squared Error) are 
+Approximate Fit Indices. They do not correct for sampling variability,
+have no clear cut-offs for good fit, and assume multivariate normal data.
+They are more qualitative measures of fit.
+
+
+    + CFI: Looks at the improvement in fit relative to the independence model 
+       which states that every variable has a mean and variance, but all are 
+       unrelated (correlations are all 0).
+       
+    + RMSEA: Tests for close fit between data (observed (co)variances) 
+       and model implied relations.
+       
+    + SRMR:  Looks at the (mean) covariance residuals. 
+
+
+* Chi-square: Actual test with corresponding null-hypothesis.
+It tests for the null-hypothesis of perfect fit (in the population), that is,
+the model perfectly recovers the observed (co)variances, which
+might be a little unrealistic. It is (unnecessarily) strict (especially for 
+large sample size), assumes multivariate normality, and assumes a random 
+sample. Moreover, it doesn't work well in case there are high correlations 
+and/or high percentages of unique variance. 
+It also tends to miss misfit in single parameters (e.g., a single 
+large covariance residual) and patterns of smaller misfit (many small 
+residuals), AND a non-significant result does NOT mean a good model.
+
+```{r}
+# Check model fit using CFI, RMSEA, SRMR, and Chi-square again
+summary(fit.multilevel, fit.measures = TRUE) 
+
+```
+
+```{r answer1_il, results = 'asis', echo = FALSE}
+
+print.response("The fit is not completely okay because both the chi-square test 
+               and the CFI indicate that the model does not describe the data 
+               properly. The RMSEA and the SRMR are okay according to our
+               guidelines but as we mentioned above we want 3 or more of our 
+               indices to indicate good fit. Notice btw how you get an SRMR for
+               both the within- and between-person model separately. You can also 
+               get/calculate other fit indices per level, but lavaan does not 
+               provide other indices, and we won't go into it further here. The
+               separete SRMR's are a good reminder that we really are looking at 
+               two different models measuring two different things here, and that
+               each model needs to fit its data, that is, the within- and 
+               between-person (co)variance matrix respectively, properly. Below
+               we will calculate the ICC (a measure of the amount of variance
+               on the between-level) and ask lavaan for the within- and 
+               between-person variance-covariance matrices so you can see how
+               different the data that the models are fit to is. After that, we
+               will use modification indices again to see how we need can adjust 
+               our model to improve model fit.")
+
+```
+
+## - Check the proportion of variance in the indicators that is on the between level using the ICC.
+
+```{r}
+lavInspect(fit.multilevel, "icc")
+
+```
+
+```{r answer2_il, results = 'asis', echo = FALSE}
+
+print.response("The ICC tell us what proportion of the total variance of a 
+               variable is variance on the between-person level. Here we see that the 
+               percentage of level 2 variance varies from 32.50% for 'smart' to
+               36.80% for 'looks'. It is this between-person variance (and the 
+               between-person covariances) that the between-model is fit to.
+               Below we will ask for the entire within-person and between-person
+               (co)variance matrices. The ICC is based on the numbers on the 
+               diagonal of these two matrices.")
+
+```
+
+## - Retrieve the within- and between-person covariance matrices.
+
+```{r}
+lavInspect(fit.multilevel, "h1")
+```
+
+## - Check the modification indices to see how we can improve model fit.
+
+```{r}
+# Obtain the modification indices
+MIsML <- modindices(fit.multilevel)
+
+# Show the first 20
+head(MIsML[order(MIsML$mi, decreasing = TRUE), 1:7], n = 30)
+```
+
+```{r answer3_il, results = 'asis', echo = FALSE}
+
+print.response("The modification indices tell us that the biggest improvement in
+               model fit will result from adding a residual covariance between
+               'anything' and 'fail' on level 1. Notice that keeping track of
+               what level a change needs to be made to is important here.")
+
+```
+
+## - Add the residual covariance between 'anything' and 'fail' on level 1
+
+```{r}
+Mutlilevel_factor2 <- '
+# Define the latent factors on level 1.
+level: 1
+  DG_1 =~ NA*anything +lambda1*anything + fail + fault + smart + 
+        mistakes + hire + looks
+
+# Intercepts
+  anything ~ i1*1
+  fail ~ 1
+  fault ~ 1
+  smart ~ 1
+  mistakes ~ 1
+  hire ~ 1
+  looks ~ 1
+  
+# Unique Variances
+  anything ~~ anything
+  fail ~~ fail
+  fault ~~ fault
+  smart ~~ smart
+  mistakes ~~ mistakes
+  hire ~~ hire
+  looks ~~ looks
+  
+
+# Latent Variable Means
+  DG_1 ~ 0*1
+
+# Latent Variable Variances and Covariance
+  DG_1 ~~ 1*DG_1
+  
+# Residual Covariances
+
+ anything ~~ fail
+  
+# Define the latent factors on level 2.
+level: 2
+
+  DG_1 =~ NA*anything +lambda1*anything + fail + fault + smart + 
+        mistakes + hire + looks
+        
+# Latent Variable Means
+  DG_1 ~ 0*1
+
+# Latent Variable Variances and Covariance
+  DG_1 ~~ 1*DG_1
+'
+```
+
+## - Fit the adjusted model to the data.
+
+```{r}
+# Model fitting
+fit.multilevel2 <- cfa(model = Mutlilevel_factor2, data = Data_ILD, 
+                      cluster = "id")
+```
+
+## - Does the model fit now?
+
+```{r}
+summary(fit.multilevel2, fit.measures=T)
+```
+
+```{r answer4_il, results = 'asis', echo = FALSE}
+
+print.response("Now the model fits well. The chi-square is stil significant, but
+the CFI, RMSEA, and SRMR all indicate sufficient fit to the data.  The SRMR for 
+the between-level is a little too high, but for this assignment we'll leave it,
+here. With your own data you could always check the modification indices to see
+what change to the between-person model would benefit fit the most. Notice 
+that the between-person SRMR changed after we added the residual covariance
+to the within-person model. It is good to be aware that a change on any level
+of the model can influence the model as a whole. There is alot of moving parts
+in multilevel models, even more so than in normal SEM models, so you need to 
+stay vigilant.")
+
+```
+
+
+## - What is the reliability per time-point for the final model? It is sufficient?
+
+```{r}
+# Calculate Reliability per level
+compRelSEM(fit.multilevel2)
+
+```
+
+```{r answer5_il, results = 'asis', echo = FALSE}
+
+print.response("The reliability is not great (with `0.603` for the within level and `0.707` for the between level. Instead of looking at the re liabilities of the within and between factor models, we could also look at the reliability of composite (e.g. sum) scores of the mean-item scores (level 2 composite) and person-centered item scores (level 1
+# composite). See  https://doi.org/10.1037/met0000287.")
+
+```
+
+## - 
+
+```{r}
+
+```
+
+## - 
+
+```{r}
+
+```
+
+
+
+
+<!-- Attach full code at the end of the solutions script -->
+```{r sol-title, results = 'asis', echo = FALSE}
+cat(
+     "# TL;DR, just give me the code!"
+)
+
+```
+
+
+
+```{r TLDR, ref.label = knitr::all_labels()[!knitr::all_labels() %in% c("global_options", "klippy", "sol-title", "answer1","answer2","answer3","answer4","answer5","answer6", "answer7", "answer8", "answer1_l", "answer2_l", "answer3_l", "answer4_l", "answer5_l", "answer6_l", "answer7_l", "answer8_l", "answer9_l", "answer10_l", "answer11_l", "answer12_l", "answer1_il", "answer2_il", "answer3_il", "answer4_il", "answer5_il")], echo = TRUE, eval = FALSE}
+```
