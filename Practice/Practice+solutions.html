@@ -3135,6 +3135,13 @@ Variances:
    .T1_CM_07          0.461    0.038   12.027    0.000
    .T1_CM_08          0.847    0.063   13.410    0.000
     CM_1              1.000                           </code></pre>
+<p><span style="color: #007FB3;">The CFI is larger than .90 and the SRMR is smaller than .08.
+The point-estimate of the RMSEA is also smaller than .08, but the 95% confidence
+interval for this fit measure goes up all the way to .092. Finally, the
+chi-square test is significant. Normally, we would like at least three of the
+four indices to show good modelfit, but here only two of the indices do so,
+while a third indicates that modelfit is maybe ok. We therefore conclude
+that modelfit is sufficient but not good.</span></p>
 </div>
 <div id="generate-code-for-checking-configural-invariance-between-groups.-can-you-figure-out-what-the-cna-nat1_cm_0x-implies" class="section level2" number="2.4">
 <h2><span class="header-section-number">2.4</span> - Generate code for checking configural invariance between groups. Can you figure out what the <code>c(NA, NA)*T1_CM_0X</code> implies?</h2>
@@ -3185,6 +3192,8 @@ CM_1 ~ c(0, 0)*1 + c(alpha.1.g1, alpha.1.g2)*1
 ## COMMON-FACTOR VARIANCES:
 
 CM_1 ~~ c(1, 1)*CM_1 + c(psi.1_1.g1, psi.1_1.g2)*CM_1</code></pre>
+<p><span style="color: #007FB3;">As explained in the lavaan manual, ‘there is no need […] to set the factor loading
+of its first indicator[s per group] equal to one [because we already fix the factor variances to 1]. To force [the] factor loading[s] to be free, we pre-multiply it with NA, as a hint to lavaan that the value of this parameter is ‘missing’ and therefore still unknown.’</span></p>
 </div>
 <div id="generate-code-for-checking-loading-invariance-between-groups." class="section level2" number="2.5">
 <h2><span class="header-section-number">2.5</span> - Generate code for checking loading invariance between groups.</h2>
@@ -3453,6 +3462,11 @@ Variances:
    .T1_CM_0 (t.7_)    0.477    0.044   10.914    0.000
    .T1_CM_0 (t.8_)    0.845    0.070   12.050    0.000
     CM_1    (p.1_)    1.000                           </code></pre>
+<p><span style="color: #007FB3;">Yes, configural invariance holds because the CFI is larger than .90 and the SRMR is smaller than .08.
+The point-estimate of the RMSEA is also smaller than .08, but again the 95% confidence
+interval for this fit measure does include the value of .08 (and higher, up to .096). Finally, the
+chi-square test is significant. We therefore conclude
+that modelfit of the configural invariance model is sufficient.</span></p>
 </div>
 <div id="now-compare-the-different-models-successively-using-the-guidelines-below." class="section level2" number="2.9">
 <h2><span class="header-section-number">2.9</span> - Now compare the different models successively, using the guidelines below.</h2>
@@ -3482,6 +3496,18 @@ fit.loadings   88.528  47   .000 .067† .944† .934† .067  7620.605† 7783.
 ################## Differences in Fit Indices #######################
                               df  rmsea   cfi   tli  srmr    aic    bic
 fit.loadings - fit.configural  7 -0.006 0.001 0.013 0.018 -7.818 -35.67</code></pre>
+<p><span style="color: #007FB3;">Yes, loading invariance holds because the chi-square difference
+test between the configural model and the model with fixed
+loadings across groups is non-significant. In addition, the change
+in CFI, RMSEA, and SRMR are .001, -.006, and .018 respectively.
+This is all within the guidelines specified above. Importantly,
+we also see that the model with fixed loadings has adequate
+fit to the data since the CFI is larger than .90, and the RMSEA
+and SRMR are both smaller than .08. If the fit of the model
+with fixed loadings had been insufficient, you should not
+conclude that there is loading invariance even if the differences
+with the configural model are all within the boundaries specified
+above.</span></p>
 </div>
 <div id="does-intercept-invariance-hold" class="section level2" number="2.11">
 <h2><span class="header-section-number">2.11</span> - Does intercept invariance hold?</h2>
@@ -3505,6 +3531,11 @@ fit.int.load 104.622  54   .000 .069  .932  .929  .079  7622.699  7757.981†
 ################## Differences in Fit Indices #######################
                             df rmsea    cfi    tli  srmr   aic     bic
 fit.int.load - fit.loadings  7 0.002 -0.012 -0.004 0.013 2.094 -25.759</code></pre>
+<p><span style="color: #007FB3;">No, intercept invariance does not hold because the chi-square
+difference test is significant and the change in CFI is larger
+than .01. The changes in RMSEA and SRMR are okay, but two out of
+the four measures indicate that fixing intercepts acorss groups
+leads to significantly worse fit.</span></p>
 </div>
 <div id="check-the-differences-in-intercepts-across-groups.-which-difference-is-the-largest" class="section level2" number="2.12">
 <h2><span class="header-section-number">2.12</span> - Check the differences in intercepts across groups. Which difference is the largest?</h2>
@@ -3518,6 +3549,7 @@ parameterEstimates(fit.loadings)[9:16,7] -
   == min(parameterEstimates(fit.loadings)[9:16,7] - 
            parameterEstimates(fit.loadings)[35:42,7]))</code></pre>
 <pre><code>[1] 5</code></pre>
+<p><span style="color: #007FB3;">The largest difference is in the intercept of item 5. Note that the indices in the code above are specific for this factor model. If you have a different model, you need to use different indices.</span></p>
 </div>
 <div id="adjust-the-model-by-allowing-for-partial-non-invariance-of-item-5-and-fit-it-to-the-data." class="section level2" number="2.13">
 <h2><span class="header-section-number">2.13</span> - Adjust the model by allowing for partial non-invariance of item 5 and fit it to the data.</h2>
@@ -3594,6 +3626,13 @@ fit.intercepts.part 97.954  53   .000 .066† .940  .936† .075  7618.031† 77
 ################## Differences in Fit Indices #######################
                                    df  rmsea    cfi   tli  srmr    aic     bic
 fit.intercepts.part - fit.loadings  6 -0.001 -0.005 0.003 0.009 -2.574 -26.447</code></pre>
+<p><span style="color: #007FB3;">Yes, now the model does not fit significantly worse than the
+model with fixed loadings. The chi-square difference test is
+non-significant, and the changes in the CFI, RMSEA and SRMR after
+fixing the intercepts of all items except item 5 are smaller than
+.01, .015, and .015 respectively. In addition, the model with
+fixed loadings and intercept also has sufficient fit to the data.
+Partial intercept invariance therefore holds.</span></p>
 </div>
 <div id="what-is-the-reliability-per-group-for-the-final-model-it-is-sufficient" class="section level2" number="2.15">
 <h2><span class="header-section-number">2.15</span> - What is the reliability per group for the final model? It is sufficient?</h2>
@@ -3604,6 +3643,7 @@ compRelSEM(fit.intercepts.part)</code></pre>
 {"columns":[{"label":["group"],"name":[1],"type":["chr"],"align":["left"]},{"label":["CM_1"],"name":[2],"type":["dbl"],"align":["right"]}],"data":[{"1":"1","2":"0.8018731"},{"1":"2","2":"0.7953991"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
+<p><span style="color: #007FB3;">The reliability for group 1 is equal to <code>0.802</code> and the reliability for group 2 is equal to <code>0.795</code>. Thus, the reliability is okay.</span></p>
 </div>
 </div>
 <div id="panel-data" class="section level1" number="3">
@@ -3885,6 +3925,21 @@ Variances:
     CM_1              1.000                           
     CM_2              1.000                           
     CM_3              1.000                           </code></pre>
+<p><span style="color: #007FB3;">The fit of the model to the data is bad. The Chi-square test
+is significant, the CFI is too low, and the RMSEA and SRMR are
+both too high. Possible reason for the misfit could have to do
+with the nature of the data. We have repeated measures here and
+scores on one time-point are likely related to scores
+on a successive time-point, and possibly above and
+beyond the dependence that is already there through the correlated
+factors at T1, T2, and T3. If you’re bad at multiple-choice
+questions at T1 for example, you probably still are at T2 and T3.
+That is why you often see correlations added between the same
+items at different (usually succesive) time-points in models for
+panel data. When using the code below to test for longitudinal
+invariance, these correlations are automatically added to the
+model so we won’t add them here. Do see if you can spot these
+serial correlations in the generated code below however.</span></p>
 </div>
 <div id="generate-code-for-checking-configural-invariance-across-time." class="section level2" number="3.4">
 <h2><span class="header-section-number">3.4</span> - Generate code for checking configural invariance across time.</h2>
@@ -4224,6 +4279,14 @@ Variances:
     CM_1    (p.1_)    1.000                           
     CM_2    (p.2_)    1.000                           
     CM_3    (p.3_)    1.000                           </code></pre>
+<p><span style="color: #007FB3;">The fit is not great because while the SRMR is lower than its
+recommended value, all other indices indicate a lack of fit
+(despite serial correlations between the same item at
+succesive time-points now being part of the model).
+This shows that at (at least) one of the three time-points the model
+fits less well. We just have to figure out exactly what part of the
+model does not fit well, and at what time-point(s). We’ll try to
+figure this out below using modification indices</span></p>
 </div>
 <div id="check-the-modification-indices.-for-each-time-point-separaterly-which-residual-covariances-would-be-worth-adding" class="section level2" number="3.7">
 <h2><span class="header-section-number">3.7</span> - Check the modification indices. For each time-point separaterly, which residual covariances would be worth adding?</h2>
@@ -4237,6 +4300,10 @@ head(MIs[order(MIs$mi, decreasing = TRUE), 1:4], n = 30)</code></pre>
 {"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["lhs"],"name":[1],"type":["chr"],"align":["left"]},{"label":["op"],"name":[2],"type":["chr"],"align":["left"]},{"label":["rhs"],"name":[3],"type":["chr"],"align":["left"]},{"label":["mi"],"name":[4],"type":["dbl"],"align":["right"]}],"data":[{"1":"T1_CM_05","2":"~~","3":"T3_CM_01","4":"41.55776","_rn_":"242"},{"1":"CM_3","2":"=~","3":"T2_CM_04","4":"30.73897","_rn_":"149"},{"1":"T3_CM_02","2":"~~","3":"T3_CM_05","4":"29.12859","_rn_":"387"},{"1":"T3_CM_01","2":"~~","3":"T3_CM_03","4":"25.76948","_rn_":"379"},{"1":"T2_CM_04","2":"~~","3":"T3_CM_01","4":"23.10704","_rn_":"337"},{"1":"T2_CM_06","2":"~~","3":"T3_CM_01","4":"21.48206","_rn_":"356"},{"1":"T1_CM_05","2":"~~","3":"T3_CM_04","4":"19.52205","_rn_":"245"},{"1":"T3_CM_06","2":"~~","3":"T3_CM_07","4":"19.51780","_rn_":"403"},{"1":"CM_2","2":"=~","3":"T3_CM_04","4":"18.52295","_rn_":"133"},{"1":"T3_CM_01","2":"~~","3":"T3_CM_02","4":"18.21221","_rn_":"378"},{"1":"T1_CM_05","2":"~~","3":"T2_CM_01","4":"16.10587","_rn_":"235"},{"1":"T2_CM_05","2":"~~","3":"T3_CM_07","4":"15.81280","_rn_":"352"},{"1":"T2_CM_01","2":"~~","3":"T2_CM_02","4":"15.63692","_rn_":"294"},{"1":"T3_CM_03","2":"~~","3":"T3_CM_06","4":"14.06083","_rn_":"393"},{"1":"T2_CM_03","2":"~~","3":"T2_CM_06","4":"13.91622","_rn_":"323"},{"1":"CM_1","2":"=~","3":"T3_CM_03","4":"13.72963","_rn_":"116"},{"1":"T2_CM_01","2":"~~","3":"T3_CM_06","4":"13.62296","_rn_":"305"},{"1":"T1_CM_02","2":"~~","3":"T3_CM_06","4":"13.04556","_rn_":"192"},{"1":"T1_CM_07","2":"~~","3":"T3_CM_04","4":"12.39152","_rn_":"276"},{"1":"T1_CM_04","2":"~~","3":"T1_CM_05","4":"12.21501","_rn_":"214"},{"1":"T3_CM_02","2":"~~","3":"T3_CM_03","4":"12.04366","_rn_":"385"},{"1":"T1_CM_01","2":"~~","3":"T3_CM_07","4":"11.96724","_rn_":"173"},{"1":"T1_CM_01","2":"~~","3":"T3_CM_08","4":"11.76693","_rn_":"174"},{"1":"T1_CM_02","2":"~~","3":"T3_CM_08","4":"11.42028","_rn_":"194"},{"1":"T2_CM_07","2":"~~","3":"T3_CM_03","4":"11.30362","_rn_":"366"},{"1":"T1_CM_06","2":"~~","3":"T3_CM_07","4":"11.24696","_rn_":"263"},{"1":"T2_CM_03","2":"~~","3":"T3_CM_05","4":"10.98606","_rn_":"329"},{"1":"T1_CM_03","2":"~~","3":"T1_CM_06","4":"10.86054","_rn_":"197"},{"1":"T1_CM_05","2":"~~","3":"T3_CM_06","4":"10.49842","_rn_":"246"},{"1":"T3_CM_07","2":"~~","3":"T3_CM_08","4":"10.46710","_rn_":"405"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
+<p><span style="color: #007FB3;">
+At T3 items 2 and 5, and 1 and 3 are pretty correlated (<code>T3_CM_02 ~~ T3_CM_05</code>, <code>T3_CM_01 ~~ T3_CM_03</code>).
+At T2 items 1 and 2, and 3 and 6 are pretty correlated (<code>T2_CM_01   ~~ T2_CM_02</code>, <code>T2_CM_03 ~~ T2_CM_06</code>).
+At T1 items 4 and 5, and 3 and 6 are pretty correlated (<code>T1_CM_04   ~~ T1_CM_05</code>, <code>T1_CM_03 ~~ T1_CM_06</code>). We see that the residual correlation between items 3 and 6 is a suggested modification at both T1 and T2. Since we’re measuring the same construct at all three time-points, making similar adjustments at each time-point is preferred. We therefore choose to add the residual correlation between items 3 and 6 at T1, T2, and T3.</span></p>
 </div>
 <div id="add-one-residual-covariance-per-time-point-to-the-model." class="section level2" number="3.8">
 <h2><span class="header-section-number">3.8</span> - Add one residual covariance per time-point to the model.</h2>
@@ -4657,6 +4724,16 @@ Variances:
     CM_1    (p.1_)    1.000                           
     CM_2    (p.2_)    1.000                           
     CM_3    (p.3_)    1.000                           </code></pre>
+<p><span style="color: #007FB3;">The fit is still not great because, apart from the SRMR, all
+fit indices are still indicating model misfit. We will therefore
+make some further alterations based on the modification indices.
+Note that you should always be very careful with the post-hoc
+model adjustments based on modification indices. Any alteration
+needs to make substantive sense, and purely adjusting your model
+based on fit indices means the risk of overfitting your model to
+the current sample, instead of finding a proper general model
+that also applies to (hypothetical) future samples from the same
+population.</span></p>
 </div>
 <div id="check-the-modification-indices.-for-each-time-point-separaterly-which-residual-covariances-would-be-worth-adding-1" class="section level2" number="3.11">
 <h2><span class="header-section-number">3.11</span> - Check the modification indices. For each time-point separaterly, which residual covariances would be worth adding?</h2>
@@ -4670,6 +4747,12 @@ head(MIs2[order(MIs2$mi, decreasing = TRUE), 1:4], n = 30)</code></pre>
 {"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["lhs"],"name":[1],"type":["chr"],"align":["left"]},{"label":["op"],"name":[2],"type":["chr"],"align":["left"]},{"label":["rhs"],"name":[3],"type":["chr"],"align":["left"]},{"label":["mi"],"name":[4],"type":["dbl"],"align":["right"]}],"data":[{"1":"T3_CM_01","2":"~~","3":"T3_CM_03","4":"39.75533","_rn_":"380"},{"1":"T1_CM_05","2":"~~","3":"T3_CM_01","4":"38.59858","_rn_":"244"},{"1":"CM_3","2":"=~","3":"T2_CM_04","4":"31.88575","_rn_":"152"},{"1":"T3_CM_02","2":"~~","3":"T3_CM_05","4":"28.09554","_rn_":"388"},{"1":"T2_CM_04","2":"~~","3":"T3_CM_01","4":"24.80208","_rn_":"338"},{"1":"T3_CM_01","2":"~~","3":"T3_CM_02","4":"23.98326","_rn_":"379"},{"1":"T2_CM_06","2":"~~","3":"T3_CM_01","4":"21.87404","_rn_":"357"},{"1":"T1_CM_05","2":"~~","3":"T3_CM_04","4":"20.34611","_rn_":"247"},{"1":"CM_2","2":"=~","3":"T3_CM_04","4":"19.16089","_rn_":"136"},{"1":"T1_CM_02","2":"~~","3":"T3_CM_06","4":"17.95353","_rn_":"195"},{"1":"T2_CM_01","2":"~~","3":"T2_CM_02","4":"16.86053","_rn_":"296"},{"1":"T1_CM_05","2":"~~","3":"T2_CM_01","4":"15.96270","_rn_":"237"},{"1":"T2_CM_05","2":"~~","3":"T3_CM_07","4":"15.81176","_rn_":"353"},{"1":"T2_CM_01","2":"~~","3":"T3_CM_06","4":"15.35660","_rn_":"307"},{"1":"T3_CM_06","2":"~~","3":"T3_CM_07","4":"15.02668","_rn_":"403"},{"1":"T2_CM_02","2":"~~","3":"T2_CM_06","4":"14.10010","_rn_":"313"},{"1":"CM_1","2":"=~","3":"T3_CM_03","4":"13.48187","_rn_":"119"},{"1":"T1_CM_02","2":"~~","3":"T2_CM_06","4":"13.29110","_rn_":"188"},{"1":"T3_CM_01","2":"~~","3":"T3_CM_05","4":"12.84465","_rn_":"382"},{"1":"T1_CM_02","2":"~~","3":"T3_CM_03","4":"12.79282","_rn_":"192"},{"1":"T1_CM_06","2":"~~","3":"T3_CM_07","4":"12.12238","_rn_":"265"},{"1":"T1_CM_01","2":"~~","3":"T3_CM_08","4":"11.91323","_rn_":"177"},{"1":"T1_CM_07","2":"~~","3":"T3_CM_04","4":"11.53571","_rn_":"278"},{"1":"T1_CM_04","2":"~~","3":"T1_CM_05","4":"11.48104","_rn_":"216"},{"1":"T3_CM_07","2":"~~","3":"T3_CM_08","4":"11.40225","_rn_":"405"},{"1":"T1_CM_02","2":"~~","3":"T3_CM_08","4":"11.38501","_rn_":"197"},{"1":"T2_CM_03","2":"~~","3":"T3_CM_05","4":"10.88440","_rn_":"330"},{"1":"T1_CM_01","2":"~~","3":"T3_CM_07","4":"10.63107","_rn_":"176"},{"1":"T2_CM_02","2":"~~","3":"T2_CM_03","4":"10.60157","_rn_":"310"},{"1":"T3_CM_02","2":"~~","3":"T3_CM_03","4":"10.18212","_rn_":"386"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
+<p><span style="color: #007FB3;">
+At T3 items 1 and 3, 3 and 5, and 1 and 2 are pretty correlated (<code>T3_CM_01 ~~ T3_CM_03</code>, <code>T3_CM_03 ~~ T3_CM_05</code>, <code>T3_CM_01 ~~ T3_CM_02</code>).
+At T2 items 1 and 2, 2 and 6, and 2 and 3 are pretty correlated (<code>T2_CM_01 ~~ T2_CM_02</code>, <code>T2_CM_02 ~~ T2_CM_06</code>, <code>T2_CM_02 ~~ T2_CM_03</code> ).
+At T1 items 4 and 5 are pretty correlated (<code>T1_CM_04   ~~ T1_CM_05</code>).
+Now we see that the residual correlation between items 1 and 2 is a suggested modification at both T3 and T2. Since we want to make similar adjustments at each time-point, we choose to add the residual correlation between items 1 and 2 at T1, T2, and T3.
+</span></p>
 </div>
 <div id="add-one-additional-residual-covariance-per-time-point-to-the-model." class="section level2" number="3.12">
 <h2><span class="header-section-number">3.12</span> - Add one additional residual covariance per time-point to the model.</h2>
@@ -5105,6 +5188,16 @@ Variances:
     CM_1    (p.1_)    1.000                           
     CM_2    (p.2_)    1.000                           
     CM_3    (p.3_)    1.000                           </code></pre>
+<p><span style="color: #007FB3;">The fit is still not good enough, even after adding additional
+residual correlations. Looking at the modification indices you
+might have noticed however that items 3, 1, and 6 are always the
+ones causing ‘problems’. We will therefore remove these items one
+at a time, but the same caution we made above with adding
+covariances based on modification indices apply here! Model
+modifications should ideally not be based on statistics alone and
+researchers always want to be careful when removing items as this
+might change the interpretation and/or scope of the latent
+variable being modeled.</span></p>
 </div>
 <div id="remove-item-3-from-the-original-model-i.e.-without-any-added-residual-covariances." class="section level2" number="3.15">
 <h2><span class="header-section-number">3.15</span> - Remove item 3 from the original model (i.e., without any added residual covariances).</h2>
@@ -5483,6 +5576,7 @@ Variances:
     CM_1    (p.1_)    1.000                           
     CM_2    (p.2_)    1.000                           
     CM_3    (p.3_)    1.000                           </code></pre>
+<p><span style="color: #007FB3;">The fit is still not good.</span></p>
 </div>
 <div id="remove-item-1-in-addition-to-item-3." class="section level2" number="3.18">
 <h2><span class="header-section-number">3.18</span> - Remove item 1 in addition to item 3.</h2>
@@ -5829,6 +5923,9 @@ Variances:
     CM_1    (p.1_)    1.000                           
     CM_2    (p.2_)    1.000                           
     CM_3    (p.3_)    1.000                           </code></pre>
+<p><span style="color: #007FB3;">The fit is gettin better (with the point estimate of the RMSEA
+on the boundary of its cut-off value now, although the upper-boundary
+of its 95% CI is still too high), but it’s not good yet.</span></p>
 </div>
 <div id="remove-item-6-in-addition-to-items-3-and-1." class="section level2" number="3.21">
 <h2><span class="header-section-number">3.21</span> - Remove item 6 in addition to items 3 and 1.</h2>
@@ -6140,6 +6237,11 @@ Variances:
     CM_1    (p.1_)    1.000                           
     CM_2    (p.2_)    1.000                           
     CM_3    (p.3_)    1.000                           </code></pre>
+<p><span style="color: #007FB3;">Yes, now we have good fit. Only the chi-square test is still
+significant, and the upper-boundary of the 95% CI of the RMSEA is
+still too high, but just barely so. Now that we have a good
+fitting configural invariance model, we are ready to start
+constraining loadings and intercepts across time-points</span></p>
 </div>
 <div id="generate-code-for-checking-loading-invariance-between-groups.-1" class="section level2" number="3.24">
 <h2><span class="header-section-number">3.24</span> - Generate code for checking loading invariance between groups.</h2>
@@ -6384,6 +6486,10 @@ fit.loading.long     229.339  80   .000 .069† .925  .901† .061  14673.077  1
 ################## Differences in Fit Indices #######################
                                         df  rmsea    cfi   tli  srmr  aic     bic
 fit.loading.long - fit.configural.long6  8 -0.002 -0.004 0.005 0.008 0.13 -31.701</code></pre>
+<p><span style="color: #007FB3;">Yes, loading invariance holds because while the chi-square
+difference test is significant, the changes in all other
+fit indices are smaller than the maximum allowed changes
+mentioned in the guidelines.</span></p>
 </div>
 <div id="does-intercept-invariance-hold-1" class="section level2" number="3.29">
 <h2><span class="header-section-number">3.29</span> - Does intercept invariance hold?</h2>
@@ -6408,6 +6514,12 @@ fit.int.load.long 258.785  88   .000 .070  .914  .897  .065  14686.523  14873.53
 ################## Differences in Fit Indices #######################
                                      df rmsea    cfi    tli  srmr    aic     bic
 fit.int.load.long - fit.loading.long  8 0.001 -0.011 -0.004 0.004 13.446 -18.386</code></pre>
+<p><span style="color: #007FB3;">This is a bit or a borderline-case, the chi-square difference
+test is significant and the change is CFI is juuust to large (by
+.001). We could now see which item has the largest change in
+intercept value across time, just like we did above for
+cross-sectional data, but for this assignment we’ll settle for
+this model and conclude that intercept invariance holds.</span></p>
 </div>
 <div id="what-is-the-reliability-per-time-point-for-the-final-model-it-is-sufficient" class="section level2" number="3.30">
 <h2><span class="header-section-number">3.30</span> - What is the reliability per time-point for the final model? It is sufficient?</h2>
@@ -6415,6 +6527,7 @@ fit.int.load.long - fit.loading.long  8 0.001 -0.011 -0.004 0.004 13.446 -18.386
 compRelSEM(fit.int.load.long)</code></pre>
 <pre><code> CM_1  CM_2  CM_3 
 0.640 0.687 0.637 </code></pre>
+<p><span style="color: #007FB3;">The reliability for all time-points are a bit low (with <code>0.640</code> for T1, <code>0.687</code> for T2 and <code>0.637</code> for T3).</span></p>
 </div>
 </div>
 <div id="intensive-longitudinal-data" class="section level1" number="4">
@@ -6629,12 +6742,38 @@ Variances:
    .mistakes        107.683   15.514    6.941    0.000
    .hire            118.737   16.260    7.302    0.000
    .looks            44.981    7.740    5.812    0.000</code></pre>
+<p><span style="color: #007FB3;">The fit is not completely okay because both the chi-square test
+and the CFI indicate that the model does not describe the data
+properly. The RMSEA and the SRMR are okay according to our
+guidelines but as we mentioned above we want 3 or more of our
+indices to indicate good fit. Notice btw how you get an SRMR for
+both the within- and between-person model separately. You can also
+get/calculate other fit indices per level, but lavaan does not
+provide other indices, and we won’t go into it further here. The
+separate SRMRs are a good reminder that we really are looking at
+two different models measuring two different things here, and that
+each model needs to fit its data, that is, the within- and
+between-person (co)variance matrix respectively, properly. Below
+we will calculate the ICC (a measure of the amount of variance
+on the between-level) and ask lavaan for the within- and
+between-person variance-covariance matrices so you can see how
+different the data that the models are fit to is. After that, we
+will use modification indices again to see how we can (carefully) adjust
+our model to improve model fit.</span></p>
 </div>
 <div id="check-the-proportion-of-variance-in-the-indicators-that-is-on-the-between-level-using-the-icc." class="section level2" number="4.4">
 <h2><span class="header-section-number">4.4</span> - Check the proportion of variance in the indicators that is on the between level using the ICC.</h2>
 <pre class="r"><code>lavInspect(fit.multilevel, &quot;icc&quot;)</code></pre>
 <pre><code>anything     fail    fault    smart mistakes     hire    looks 
    0.337    0.329    0.343    0.325    0.335    0.353    0.368 </code></pre>
+<p><span style="color: #007FB3;">The ICC tell us what proportion of the total variance of a
+variable is variance on the between-person level. Here we see that the
+percentage of level 2 variance varies from 32.50% for ‘smart’ to
+36.80% for ‘looks’. It is this between-person variance (and the
+between-person covariances) that the between-model is fit to.
+Below we will ask for the entire within-person and between-person
+(co)variance matrices. The ICC is based on the numbers on the
+diagonal of these two matrices.</span></p>
 </div>
 <div id="retrieve-the-within--and-between-person-covariance-matrices." class="section level2" number="4.5">
 <h2><span class="header-section-number">4.5</span> - Retrieve the within- and between-person covariance matrices.</h2>
@@ -6682,6 +6821,10 @@ head(MIsML[order(MIsML$mi, decreasing = TRUE), 1:7], n = 30)</code></pre>
 {"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["lhs"],"name":[1],"type":["chr"],"align":["left"]},{"label":["op"],"name":[2],"type":["chr"],"align":["left"]},{"label":["rhs"],"name":[3],"type":["chr"],"align":["left"]},{"label":["block"],"name":[4],"type":["int"],"align":["right"]},{"label":["group"],"name":[5],"type":["int"],"align":["right"]},{"label":["level"],"name":[6],"type":["int"],"align":["right"]},{"label":["mi"],"name":[7],"type":["dbl"],"align":["right"]}],"data":[{"1":"anything","2":"~~","3":"fail","4":"1","5":"1","6":"1","7":"1109.384816","_rn_":"48"},{"1":"fault","2":"~~","3":"looks","4":"1","5":"1","6":"1","7":"668.580886","_rn_":"62"},{"1":"fail","2":"~~","3":"looks","4":"1","5":"1","6":"1","7":"226.532479","_rn_":"58"},{"1":"fail","2":"~~","3":"fault","4":"1","5":"1","6":"1","7":"220.819748","_rn_":"54"},{"1":"anything","2":"~~","3":"looks","4":"1","5":"1","6":"1","7":"180.692110","_rn_":"53"},{"1":"anything","2":"~~","3":"fault","4":"1","5":"1","6":"1","7":"137.591784","_rn_":"49"},{"1":"fault","2":"~~","3":"looks","4":"2","5":"1","6":"2","7":"47.444482","_rn_":"83"},{"1":"anything","2":"~~","3":"mistakes","4":"1","5":"1","6":"1","7":"40.883624","_rn_":"51"},{"1":"anything","2":"~~","3":"fail","4":"2","5":"1","6":"2","7":"36.353998","_rn_":"69"},{"1":"mistakes","2":"~~","3":"hire","4":"1","5":"1","6":"1","7":"29.494123","_rn_":"66"},{"1":"mistakes","2":"~~","3":"hire","4":"2","5":"1","6":"2","7":"26.357449","_rn_":"87"},{"1":"smart","2":"~~","3":"hire","4":"1","5":"1","6":"1","7":"16.143283","_rn_":"64"},{"1":"fault","2":"~~","3":"hire","4":"1","5":"1","6":"1","7":"12.434223","_rn_":"61"},{"1":"fail","2":"~~","3":"mistakes","4":"2","5":"1","6":"2","7":"11.809766","_rn_":"77"},{"1":"hire","2":"~~","3":"looks","4":"2","5":"1","6":"2","7":"11.580875","_rn_":"89"},{"1":"fail","2":"~~","3":"looks","4":"2","5":"1","6":"2","7":"11.384610","_rn_":"79"},{"1":"fail","2":"~~","3":"fault","4":"2","5":"1","6":"2","7":"10.183574","_rn_":"75"},{"1":"mistakes","2":"~~","3":"looks","4":"2","5":"1","6":"2","7":"9.900084","_rn_":"88"},{"1":"fault","2":"~~","3":"mistakes","4":"1","5":"1","6":"1","7":"5.686448","_rn_":"60"},{"1":"smart","2":"~~","3":"looks","4":"1","5":"1","6":"1","7":"5.541758","_rn_":"65"},{"1":"fault","2":"~~","3":"mistakes","4":"2","5":"1","6":"2","7":"4.679882","_rn_":"81"},{"1":"fail","2":"~~","3":"smart","4":"2","5":"1","6":"2","7":"4.138090","_rn_":"76"},{"1":"smart","2":"~~","3":"looks","4":"2","5":"1","6":"2","7":"2.761974","_rn_":"86"},{"1":"fail","2":"~~","3":"smart","4":"1","5":"1","6":"1","7":"2.619475","_rn_":"55"},{"1":"anything","2":"~~","3":"fault","4":"2","5":"1","6":"2","7":"2.478190","_rn_":"70"},{"1":"mistakes","2":"~~","3":"looks","4":"1","5":"1","6":"1","7":"2.288072","_rn_":"67"},{"1":"fail","2":"~~","3":"mistakes","4":"1","5":"1","6":"1","7":"1.974841","_rn_":"56"},{"1":"fault","2":"~~","3":"hire","4":"2","5":"1","6":"2","7":"1.742297","_rn_":"82"},{"1":"anything","2":"~~","3":"smart","4":"2","5":"1","6":"2","7":"1.734858","_rn_":"71"},{"1":"fail","2":"~~","3":"hire","4":"2","5":"1","6":"2","7":"1.479706","_rn_":"78"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
+<p><span style="color: #007FB3;">The modification indices tell us that the biggest improvement in
+model fit will result from adding a residual covariance between
+‘anything’ and ‘fail’ on level 1. Notice that keeping track of
+what level a change needs to be made to is important here.</span></p>
 </div>
 <div id="add-the-residual-covariance-between-anything-and-fail-on-level-1" class="section level2" number="4.7">
 <h2><span class="header-section-number">4.7</span> - Add the residual covariance between ‘anything’ and ‘fail’ on level 1</h2>
@@ -6873,6 +7016,16 @@ Variances:
    .mistakes        108.370   15.674    6.914    0.000
    .hire            119.018   16.351    7.279    0.000
    .looks            43.759    7.451    5.873    0.000</code></pre>
+<p><span style="color: #007FB3;">Now the model fits well. The chi-square is stil significant, but
+the CFI, RMSEA, and SRMR all indicate sufficient fit to the data. The SRMR for
+the between-level is a little too high, but for this assignment we’ll leave it.
+With your own data you could always check the modification indices to see
+what change to the between-person model would benefit fit the most. Notice
+that the between-person SRMR changed after we added the residual covariance
+to the within-person model. It is good to be aware that a change on any level
+of the model can influence the model as a whole. There is alot of moving parts
+in multilevel models, even more so than in normal SEM models, so you need to
+stay vigilant.</span></p>
 </div>
 <div id="what-is-the-reliability-per-time-point-for-the-final-model-is-it-sufficient" class="section level2" number="4.10">
 <h2><span class="header-section-number">4.10</span> - What is the reliability per time-point for the final model? Is it sufficient?</h2>
@@ -6883,6 +7036,8 @@ compRelSEM(fit.multilevel2)</code></pre>
 {"columns":[{"label":["level"],"name":[1],"type":["chr"],"align":["left"]},{"label":["DG_1"],"name":[2],"type":["dbl"],"align":["right"]}],"data":[{"1":"within","2":"0.6033588"},{"1":"id","2":"0.7071699"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
+<p><span style="color: #007FB3;">The reliability is not great (with <code>0.603</code> for the within level and <code>0.707</code> for the between level. Instead of looking at the reliabilities of the within and between factor models, we could also look at the reliability of composite (e.g. sum) scores of the mean-item scores (level 2 composite) and person-centered item scores (level 1
+# composite). See <a href="https://doi.org/10.1037/met0000287" class="uri">https://doi.org/10.1037/met0000287</a>.</span></p>
 </div>
 </div>
 <div id="latent-markov-factor-analysis" class="section level1" number="5">
